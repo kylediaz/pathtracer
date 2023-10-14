@@ -22,11 +22,7 @@ public:
     point3 lookat   = point3(0,0,0);   // Point camera is looking at
     vec3   vup      = vec3(0,1,0);     // Camera-relative "up" direction
 
-    void render(const hittable_list &world)
-    {
-        render(world, max_depth);
-    }
-
+    void render(const hittable_list &world);
     void render(const hittable_list &world, const int cores);
 
     color render_pixel(const hittable_list &world, int i, int j);
@@ -43,7 +39,7 @@ private:
     void initialize();
 
     std::thread thread_job(const hittable_list &world, const image &output, const int line_start, const int line_end);
-    void render_scanline(const hittable_list &world, const image &output, const int line_start, const int line_end);
+    void render_scanlines(const hittable_list &world, const image &output, const int line_start, const int line_end);
 
     color ray_color(const ray &r, const hittable_list &world)
     {

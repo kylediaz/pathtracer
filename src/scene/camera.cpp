@@ -5,13 +5,8 @@
 #include "object/object.h"
 #include "material.h"
 
-void camera::render(const hittable_list &world, int cores)
+void camera::render(const hittable_list &world)
 {
-    if (cores <= 0)
-    {
-        return;
-    }
-
     this->initialize();
 
     image output(image_width, image_height);
@@ -28,10 +23,44 @@ void camera::render(const hittable_list &world, int cores)
 
     output.flushToPPM();
 }
-void camera::render_scanline(const hittable_list &world, const image &output, const int line_start, const int line_end)
+
+void camera::render(const hittable_list &world, int cores)
 {
-    int pixel_index = 0;
-    for (int j = 0; j < image_height; ++j)
+    if (cores <= 0)
+    {
+        return;
+    }
+
+    this->initialize();
+
+    image output(image_width, image_height);
+
+    std::vector<std::thread> threads;
+
+    int rangeSize = image_height / cores;
+    for (int i = 0; i < cores; i++)
+    {
+        int start = i * rangeSize;
+        int end = (i + 1) * rangeSize - 1;
+        threads.emplace_back(&camera::render_scanlines, *this, world, output, start, end);
+    }
+    if (image_height % rangeSize != 0)
+    {
+        threads.emplace_back(&camera::render_scanlines, *this, world, output, image_height, image_height - (image_height % rangeSize));
+    }
+
+    // Join the threads to wait for them to finish
+    for (std::thread &thread : threads)
+    {
+        thread.join();
+    }
+
+    output.flushToPPM();
+}
+void camera::render_scanlines(const hittable_list &world, const image &output, const int line_start, const int line_end)
+{
+    int pixel_index = line_start * image_width;
+    for (int j = line_start; j <= line_end; ++j)
     {
         for (int i = 0; i < image_width; ++i)
         {
@@ -72,9 +101,9 @@ void camera::initialize()
     v = cross(w, u);
 
     U = viewport_width * u;
-    V = -viewport_height * v;
+    V = viewport_height * -v;
 
-    viewport_upper_left = center - (focal_length * w) - U/2 - V/2;
+    viewport_upper_left = center - (focal_length * w) - U / 2 - V / 2;
     viewport_center = viewport_upper_left + .5 * (U + V);
 }
 

@@ -9,10 +9,11 @@
 #include "scene/camera.h"
 
 #include <iostream>
+#include <chrono>
 
 int main()
 {
-    int num_cores = 4;
+    int num_cores = 16;
 
     hittable_list world;
 
@@ -58,14 +59,17 @@ int main()
 
     camera cam;
 
-    cam.image_width = 400;
-    cam.image_height = 400;
-    cam.samples_per_pixel = 10;
-    cam.max_depth = 10;
+    cam.image_width = 1920;
+    cam.image_height = 1080;
+    cam.samples_per_pixel = 250;
+    cam.max_depth = 50;
 
-    cam.lookfrom = point3(13,3,3);
-    cam.lookat   = point3(0,0,0);
+    cam.lookfrom = point3(13,-10,3);
+    cam.lookat   = point3(0,10,0);
     cam.vup      = vec3(0,1,0);
 
+    auto start = std::chrono::high_resolution_clock::now();
     cam.render(world, num_cores);
+    auto stop = std::chrono::high_resolution_clock::now();
+    std::clog << "Total time: " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << "\n";
 }
