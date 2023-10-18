@@ -1,55 +1,95 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "./geometry/vec3.h"
-#include "./geometry/ray.h"
+#include "./ptmath/vec3.h"
+#include "./ptmath/ray.h"
 #include "./graphics/color.h"
 #include "object/object.h"
 
-class material
+using namespace ptmath;
+
+namespace scene
 {
-public:
-    virtual ~material() = default;
 
-    virtual bool scatter(
-        const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered) const = 0;
-};
+    class Material
+    {
+    public:
+        virtual ~Material() = default;
 
-class lambertian : public material
-{
-public:
-    lambertian(const color &a) : albedo(a) {}
-    bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered)
-        const override;
+        virtual bool Scatter(
+            const ray &r_in, const HitRecord &rec, color &attenuation, ray &scattered) const = 0;
 
-private:
-    color albedo;
-};
+        virtual color Emit(
+            const ray &r_in, const HitRecord &rec) const
+        {
+            return color(0, 0, 0);
+        }
+    };
 
-class metal : public material
-{
-public:
-    metal(const color &a) : albedo(a) {}
+    // Solid Materials
 
-    bool scatter(const ray &r_in, const hit_record &rec, color &attenuation, ray &scattered)
-        const override;
+    class Lambertian : public Material
+    {
+    public:
+        Lambertian(const color &a) : albedo_(a) {}
+        bool Scatter(const ray &r_in, const HitRecord &rec, color &attenuation, ray &scattered)
+            const override;
 
-private:
-    color albedo;
-};
+    private:
+        color albedo_;
+    };
 
+    class CheckeredLambertian : public Material
+    {
+    public:
+        CheckeredLambertian(const double scale, const color &c1, const color &c2) : scale_(scale), albedo_1_(c1), albedo_2_(c2) {}
+        bool Scatter(const ray &r_in, const HitRecord &rec, color &attenuation, ray &scattered)
+            const override;
 
-class dielectric : public material {
-  public:
-    dielectric(double index_of_refraction) : ir(index_of_refraction) {}
+    private:
+        double scale_;
+        color albedo_1_, albedo_2_;
+    };
 
-    bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
-    const override;
+    // Special Properties
 
-  private:
-    double ir; // Index of Refraction
-};
+    class Metal : public Material
+    {
+    public:
+        Metal(const color &a) : albedo_(a) {}
 
-static inline color default_color = color(1, 0, 0);
+        bool Scatter(const ray &r_in, const HitRecord &rec, color &attenuation, ray &scattered)
+            const override;
+
+    private:
+        color albedo_;
+    };
+
+    class Dielectric : public Material
+    {
+    public:
+        Dielectric(double index_of_refraction) : ir(index_of_refraction) {}
+
+        bool Scatter(const ray &r_in, const HitRecord &rec, color &attenuation, ray &scattered)
+            const override;
+
+    private:
+        double ir; // Index of Refraction
+    };
+
+    class Light : public Material
+    {
+    public:
+        Light(const color &a) : albedo_(a) {}
+
+        bool Scatter(const ray &r_in, const HitRecord &rec, color &attenuation, ray &scattered)
+            const override;
+        color Emit(const ray &r_in, const HitRecord &rec) const override;
+
+    private:
+        color albedo_;
+    };
+
+}
 
 #endif
