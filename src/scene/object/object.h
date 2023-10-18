@@ -41,13 +41,13 @@ namespace scene
         virtual bool hit(const ray &r, interval ray_t, HitRecord &rec) const = 0;
     };
 
-    class hittable_list : public Hittable
+    class HittableGroup : public Hittable
     {
     public:
         std::vector<shared_ptr<Hittable>> objects;
 
-        hittable_list() {}
-        hittable_list(shared_ptr<Hittable> object) { add(object); }
+        HittableGroup() {}
+        HittableGroup(shared_ptr<Hittable> object) { add(object); }
 
         void clear() { objects.clear(); }
 

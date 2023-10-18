@@ -35,7 +35,7 @@ void Camera::Initialize()
     std::clog << center;
 }
 
-void Camera::Render(const hittable_list &world)
+void Camera::Render(const HittableGroup &world)
 {
     this->Initialize();
 
@@ -56,7 +56,7 @@ void Camera::Render(const hittable_list &world)
     output.flushToPPM();
 }
 
-color Camera::RenderPixel(const hittable_list &world, int i, int j)
+color Camera::RenderPixel(const HittableGroup &world, int i, int j)
 {
     color color;
     for (int sample = 0; sample < samples_per_pixel_; sample++)
@@ -82,7 +82,7 @@ ray Camera::GetRayForPixel(const int i, const int j)
     return ray(origin, direction);
 }
 
-color Camera::RenderRay(const ray &r, const hittable_list &world, const int depth)
+color Camera::RenderRay(const ray &r, const HittableGroup &world, const int depth)
 {
     if (depth <= 0)
     {
@@ -112,7 +112,7 @@ color Camera::RenderRay(const ray &r, const hittable_list &world, const int dept
 
 // Multi Threaded
 
-void MultiThreadCamera::Render(const hittable_list &world, int num_threads)
+void MultiThreadCamera::Render(const HittableGroup &world, int num_threads)
 {
     if (num_threads <= 0)
     {
@@ -141,7 +141,7 @@ void MultiThreadCamera::Render(const hittable_list &world, int num_threads)
     output.flushToPPM();
 }
 
-void MultiThreadCamera::ThreadJob(const hittable_list &world, const image &output, int& line_ref, std::mutex& mu) {
+void MultiThreadCamera::ThreadJob(const HittableGroup &world, const image &output, int& line_ref, std::mutex& mu) {
     int current_line = -1;
     while (current_line < image_height_) {
         mu.lock();
@@ -156,7 +156,7 @@ void MultiThreadCamera::ThreadJob(const hittable_list &world, const image &outpu
     }
 }
 
-void MultiThreadCamera::RenderScanline(const hittable_list &world, const image &output, const int line)
+void MultiThreadCamera::RenderScanline(const HittableGroup &world, const image &output, const int line)
 {
     int pixel_index = line * image_width_;
     for (int x = 0; x < image_width_; ++x)
@@ -166,7 +166,7 @@ void MultiThreadCamera::RenderScanline(const hittable_list &world, const image &
     }
 }
 
-void BatchedMultiThreadCamera::Render(const hittable_list &world, int num_threads)
+void BatchedMultiThreadCamera::Render(const HittableGroup &world, int num_threads)
 {
     if (num_threads <= 0)
     {
@@ -189,7 +189,8 @@ void BatchedMultiThreadCamera::Render(const hittable_list &world, int num_thread
     if (image_height_ % rangeSize != 0)
     {
         int start = image_height_ - (image_height_ % rangeSize);
-        threads.emplace_back(&BatchedMultiThreadCamera::RenderScanlines, *this, world, output, start, image_height_);
+        int end = image_height_ - 1;
+        threads.emplace_back(&BatchedMultiThreadCamera::RenderScanlines, *this, world, output, start, end);
     }
 
     // Join the threads to wait for them to finish
@@ -201,9 +202,8 @@ void BatchedMultiThreadCamera::Render(const hittable_list &world, int num_thread
     output.flushToPPM();
 }
 
-void BatchedMultiThreadCamera::RenderScanlines(const hittable_list &world, const image &output, const int line_start, const int line_end)
+void BatchedMultiThreadCamera::RenderScanlines(const HittableGroup &world, const image &output, const int line_start, const int line_end)
 {
-    int pixel_index = line_start * image_width_;
     for (int y = line_start; y <= line_end; ++y)
     {
         RenderScanline(world, output, y);

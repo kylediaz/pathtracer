@@ -20,7 +20,7 @@ bool CheckeredLambertian::Scatter(const ray &r_in, const HitRecord &rec, color &
     scattered = ray(rec.p, scatter_direction);
 
     Point3 p = (1 / scale_) * rec.p;
-    auto sum = ((int) p.x() + (int) p.y() + (int) p.z());
+    auto sum = ((int)p.x() + (int)p.y() + (int)p.z());
     attenuation = sum % 2 != 0 ? albedo_1_ : albedo_2_;
 
     return true;
@@ -48,12 +48,13 @@ bool Dielectric::Scatter(const ray &r_in, const HitRecord &rec, color &attenuati
     return true;
 }
 
-bool Light::Scatter(const ray &r_in, const HitRecord &rec, color &attenuation, ray &scattered)
+bool Light::Scatter([[maybe_unused]] const ray &r_in, [[maybe_unused]] const HitRecord &rec, [[maybe_unused]] color &attenuation, [[maybe_unused]] ray &scattered)
     const
 {
     return false;
 }
 
-color Light::Emit(const ray &r_in, const HitRecord &rec) const {
+color Light::Emit([[maybe_unused]] const ray &r_in, [[maybe_unused]] const HitRecord &rec) const
+{
     return albedo_;
 }

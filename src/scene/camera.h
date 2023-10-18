@@ -30,7 +30,7 @@ namespace scene
         Point3 lookat_ = Point3(0, 0, 0);     // Point camera is looking at
         Vec3 vup_ = Vec3(0, 1, 0);            // Camera-relative "up" direction
 
-        void Render(const hittable_list &world);
+        void Render(const HittableGroup &world);
 
     protected:
         double aspect_ratio_;
@@ -43,15 +43,15 @@ namespace scene
 
         void Initialize();
 
-        color RenderPixel(const hittable_list &world, int i, int j);
+        color RenderPixel(const HittableGroup &world, int i, int j);
 
         ray GetRayForPixel(const int i, const int j);
 
-        color RenderRay(const ray &r, const hittable_list &world)
+        color RenderRay(const ray &r, const HittableGroup &world)
         {
             return RenderRay(r, world, max_depth_);
         }
-        color RenderRay(const ray &r, const hittable_list &world, const int depth);
+        color RenderRay(const ray &r, const HittableGroup &world, const int depth);
 
     };
 
@@ -61,11 +61,11 @@ namespace scene
     class MultiThreadCamera : public Camera
     {
     public:
-        void Render(const hittable_list &world, const int num_threads);
+        void Render(const HittableGroup &world, const int num_threads);
     private:
-        void ThreadJob(const hittable_list &world, const image &output, int& line_ref, std::mutex& mu);
+        void ThreadJob(const HittableGroup &world, const image &output, int& line_ref, std::mutex& mu);
     protected:
-        void RenderScanline(const hittable_list &world, const image &output, const int line);
+        void RenderScanline(const HittableGroup &world, const image &output, const int line);
     };
 
     /**
@@ -74,10 +74,10 @@ namespace scene
     class BatchedMultiThreadCamera : public MultiThreadCamera
     {
     public:
-        void Render(const hittable_list &world, const int num_threads);
+        void Render(const HittableGroup &world, const int num_threads);
 
     protected:
-        void RenderScanlines(const hittable_list &world, const image &output, const int line_start, const int line_end);
+        void RenderScanlines(const HittableGroup &world, const image &output, const int line_start, const int line_end);
     };
 
 }

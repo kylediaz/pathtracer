@@ -20,7 +20,7 @@ namespace scene
             const ray &r_in, const HitRecord &rec, color &attenuation, ray &scattered) const = 0;
 
         virtual color Emit(
-            const ray &r_in, const HitRecord &rec) const
+            [[maybe_unused]] const ray &r_in, [[maybe_unused]] const HitRecord &rec) const
         {
             return color(0, 0, 0);
         }
